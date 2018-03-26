@@ -4,7 +4,7 @@ import interface
 
 def main():
 	window = interface.Window()
-	f = field.Field(*window.cells)
+	f = field.Field(*window.cells_params)
 	window.start(f)
 
 

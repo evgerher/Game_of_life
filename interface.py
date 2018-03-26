@@ -10,7 +10,7 @@ class Window:
 		self.height = height
 		self.cell_size = 20
 		self.canvas, self.cells = self.configure_window()
-		self.cells = (self.width // self.cell_size, self.height // self.cell_size) 
+		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size) 
 
 	def configure_window(self):
 		geometry = '{}x{}'.format(self.width, self.height+100)
@@ -40,9 +40,11 @@ class Window:
 
 	def change_cell_state(self, event):
 		x, y = event.x, event.y
+		print("{}:{} - coords".format(x, y))
 		id_x = x // self.cell_size
 		id_y = y // self.cell_size
 		ratio = self.width // self.cell_size
+		print("{}:{} - indexes".format(id_x, id_y))
 		cell = self.cells[id_x + ratio * id_y]
 
 		self.field.set_cell(id_x, id_y)

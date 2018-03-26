@@ -15,11 +15,11 @@ class Field:
 			for x in self.fields[0][x]:
 				new_field[y][x] = process_cell(x, y)
 
-		self.fields = new_field + self:fields[1:]
+		self.fields = new_field + self.fields[1:]
 
 	def clean(self):
-		for i in self.fields[0]:
-			for j in self.fields[0][i]:
+		for i in range(len(self.fields[0])):
+			for j in range(len(self.fields[0][i])):
 				self.fields[0][i][j] = False
 
 	def process_cell(x, y):
@@ -32,25 +32,28 @@ class Field:
 		return False
 
 	def count_neighbours(self, x, y):
+		right_x = (x + 1) % x_border
+		right_y = (y + 1) % y_border
+		left_x = (x - 1) if (x - 1) > 0 else x_border
+		left_y = (y - 1) if (y - 1) > 0 else y_border
+ 
 		count = 0
-		if self.fields[0][x + 1][y]:
+		if self.fields[0][right_x][y]:
 			count += 1
-		if self.fields[0][x - 1][y]:
+		if self.fields[0][left_x][y]:
 			count += 1
-		if self.fields[0][x + 1][y + 1]:
+		if self.fields[0][right_x][right_y]:
 			count += 1
-		if self.fields[0][x + 1][y - 1]:
+		if self.fields[0][right_x][left_y]:
 			count += 1
-		if self.fields[0][x][y + 1]:
+		if self.fields[0][x][right_y]:
 			count += 1
-		if self.fields[0][x][y - 1]:
+		if self.fields[0][x][left_y]:
 			count += 1
-		if self.fields[0][x - 1][y - 1]:
+		if self.fields[0][left_x][left_y]:
 			count += 1
-		if self.fields[0][x - 1][y + 1]:
+		if self.fields[0][left_x][right_y]:
 			count += 1
-
-	# TODO: Exception handling - нужно остаться на той же строчке
 
 		return count
 
@@ -62,7 +65,7 @@ class Field:
 		#TODO: Make it better
 
 def main():
-
+	print ("hell")
 
 
 if __name__ == "__main__":
