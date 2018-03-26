@@ -5,22 +5,23 @@ import threading as th
 from time import sleep
 
 class Drawer(th.Thread):
-	def __init__(self, window):
+	def __init__(self, window, delay):
 		th.Thread.__init__(self)
 		self.condition = True
 		self.window = window
+		self.delay = delay
 
 	def run(self):
 		print("Thread started")
 		while self.condition:
 			self.condition = self.window.update_canvas()
-			sleep(0.2)
+			sleep(self.delay)
 		print("Thread exited")
 
 class Window:
 	# set 800x600 for 40x30 rectangles
 	# set 60x60 for 3x3 rectangles
-	def __init__(self, width=100, height=100):
+	def __init__(self, width=800, height=600):
 		self.field = None
 		self.root = tk.Tk()
 		self.width = width
@@ -74,7 +75,8 @@ class Window:
 			event.widget.itemconfig(cell, fill='gray')
 
 	def clear_field(self):
-		self.thread.condition = False
+		if self.thread:
+			self.thread.condition = False
 		for cell in self.cells:
 			self.canvas.itemconfig(cell, fill='white')
 		self.field.clean()
@@ -89,10 +91,14 @@ class Window:
 
 	def start_game(self):
 		self.update_canvas()
+		self.start_thread(0.2)
+
+	def start_thread(self, delay):
 		sleep(0.1)
-		self.thread = Drawer(self)
+		self.thread = Drawer(self, delay)
 		self.thread.setDaemon(True)
 		self.thread.start()
+		
 
 	def canvas_to_field(self):
 		# mistake
@@ -113,7 +119,7 @@ class Window:
 	def update_cells(self, field):
 		for i in range(len(field)):
 			for j in range(len(field[0])):
-				index = i * self.cells_params[0] + j
+				index = i + self.cells_params[0] * j
 				if field[i][j]:	
 					self.canvas.itemconfig(self.cells[index], fill='gray')
 				else:

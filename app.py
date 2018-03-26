@@ -7,6 +7,5 @@ def main():
 	f = field.Field(*window.cells_params)
 	window.start(f)
 
-
 if __name__ == '__main__':
 	main()
