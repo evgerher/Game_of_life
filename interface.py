@@ -4,13 +4,24 @@ import tkinter as tk
 import threading as th
 from time import sleep
 
+'''
+Thread for autoupdating the canvas
+Initializes next step and redraws the screen
+'''
 class Drawer(th.Thread):
-	def __init__(self, window, delay):
+	''' 
+	window - Window object for calling update_canvas()
+	delay - time in seconds till next iteration
+	condition - end condition for a thread
+	'''
+	def __init__(self, window, delay=0.5):
 		th.Thread.__init__(self)
 		self.condition = True
 		self.window = window
 		self.delay = delay
 
+	# Initializes a job for a thread
+	# until condition will become False the thread will continue its work
 	def run(self):
 		print("Thread started")
 		while self.condition:
@@ -18,40 +29,59 @@ class Drawer(th.Thread):
 			sleep(self.delay)
 		print("Thread exited")
 
+""" 
+Class Window
+Collaborates all the GUI components and Field components
+Stores GUI processing units and receives updates from Field object
+"""
 class Window:
 	# set 800x600 for 40x30 rectangles
 	# set 60x60 for 3x3 rectangles
-	def __init__(self, width=800, height=600):
-		self.field = None
-		self.root = tk.Tk()
-		self.width = width
-		self.height = height
-		self.cell_size = 20
-		self.canvas, self.cells = self.configure_window()
-		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size)
-		self.thread = None
+	def __init__(self, width=800, height=600, cell_size=20, thread_active=False):
+		self.field = None # Field object, stores logic and constructs new iteration of the map
+		self.root = tk.Tk() # GUI root object
+		self.width = width # Width of the screen
+		self.height = height # Height of the screen
+		self.cell_size = size # size AxA pixels of the rectangles in the canvas
+		self.canvas, self.cells = self.configure_window() # Init method for GUI
+		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size) # Store amount of cells in width and height for later needs
+		self.thread = None # Thread for parallel update
+		self.thread_active = thread_active
 
+	""" 
+	Method configure_window
+	Initializes different tools and widgets for the GUI
+	Set ups rectangles (cells) and binds buttons 
+
+	Returns `canvas` object and `cells` list
+	"""
 	def configure_window(self):
+		# Set up window size
 		geometry = '{}x{}'.format(self.width, self.height+100)
 		self.root.geometry(geometry)
 
-		cells = []
+		# Initialize canvas
 		canvas = tk.Canvas(self.root, width=self.width, height=self.height)
+
+		# Initialize cells
+		cells = []
 		for i in range(self.height // self.cell_size):
 			for j in range(self.width // self.cell_size):
 				cells.append(canvas.create_rectangle(j * self.cell_size, i * self.cell_size, (j+1) * self.cell_size, (i+1) * self.cell_size, fill='white'))
 
-		canvas.pack(fill=tk.BOTH)
-
+		# Hold left mouse press and motion of pressed left button as an update for a cell
 		canvas.bind('<Button 1>', self.change_cell_state)
 		canvas.bind('<B1-Motion>', self.change_cell_state)
 
 		frame = tk.Frame(self.root)
 
+		# Button inialization
 		btn_start = tk.Button(frame, text='Start', command=self.start_game)
 		btn_clear = tk.Button(frame, text='Clear', command=self.clear_field)
 		btn_stop = tk.Button(frame, text='Stop', command=self.stop)
 
+		# Items packing
+		canvas.pack(fill=tk.BOTH)
 		frame.pack(side='bottom')
 		btn_start.pack(side='left')
 		btn_clear.pack(side='right')
@@ -59,21 +89,38 @@ class Window:
 
 		return canvas, cells
 
+	""" 
+	Method change_cell_state
+	Alters the state of a cell (in some cases exception with reading the coordinates appears)
+	Finds the index (x, y) of the cell form the canvas
+	Updates local rectangle and updates Field object
+	"""
 	def change_cell_state(self, event):
+		# Calculation of the indexes
 		x, y = event.x, event.y
-		# print("{}:{} - coords".format(x, y))
 		id_x = x // self.cell_size
 		id_y = y // self.cell_size
 		ratio = self.width // self.cell_size
-		# print("{}:{} - indexes".format(id_x, id_y))
-		cell = self.cells[id_x + ratio * id_y]
 
-		self.field.set_cell(id_x, id_y)
-		if event.widget.itemcget(cell, 'fill') == 'gray':
-			event.widget.itemconfig(cell, fill='white')
-		else:
-			event.widget.itemconfig(cell, fill='gray')
+		# Handling IndexError (wrong coordinates interpretation near the bottom borders)
+		try:
+			cell = self.cells[id_x + ratio * id_y]
 
+			# Update Field cell
+			self.field.set_cell(id_x, id_y)
+
+			# Update local cell
+			if event.widget.itemcget(cell, 'fill') == 'gray':
+				event.widget.itemconfig(cell, fill='white')
+			else:
+				event.widget.itemconfig(cell, fill='gray')
+		except IndexError as e:
+			pass
+
+	"""
+	clear_field method
+	Cleans entire screen and also wipes the Field object
+	"""
 	def clear_field(self):
 		if self.thread:
 			self.thread.condition = False
@@ -81,18 +128,39 @@ class Window:
 			self.canvas.itemconfig(cell, fill='white')
 		self.field.clean()
 
-	def start(self, f):
-		self.field = f
+	"""
+	start method
+	Saves field object and inits main loop of the GUI
+	"""
+	def start(self, field):
+		self.field = field
 		self.root.mainloop()
 
+	"""
+	stop method
+	Event-handler for the Stop button
+	Stops the Drawer thread (autoupdater)
+	"""
 	def stop(self):
 		if self.thread:
 			self.thread.condition = False
 
+	"""
+	start_game method
+	Event-handler for the Start button
+	1) Makes one step
+	2) Starts the Drawer thread (autoupdater) if this option is activated 
+	"""
 	def start_game(self):
 		self.update_canvas()
-		self.start_thread(0.2)
+		if self.thread_active:
+			self.start_thread(0.2)
 
+	"""
+	start_thread method
+	Starts the Drawer thread (autoupdater)
+	Initializes background thread for updating the canvas after short pause
+	"""
 	def start_thread(self, delay):
 		sleep(0.1)
 		self.thread = Drawer(self, delay)
@@ -100,8 +168,12 @@ class Window:
 		self.thread.start()
 		
 
+	"""
+	canvas_to_field method
+	Transforms the canvas to two-dimensional array of booleans for Field object
+	"""
 	def canvas_to_field(self):
-		# mistake
+		# Init new 2D-array
 		field = [[False for x in range(self.cells_params[0])] for y in range(self.cells_params[1])]
 		for i in range(len(self.cells)):
 			if self.canvas.itemcget(self.cells[i], 'fill') == 'gray':
@@ -109,6 +181,13 @@ class Window:
 
 		return field
 
+	"""
+	update_canvas method
+	1) Requests 2D array copy of canvas
+	2) Processes it and receives new field and condition
+	3) Transforms new field to a new canvas
+	4) Returns the condition of the map (may be it ended)
+	"""
 	def update_canvas(self):
 		field = self.canvas_to_field()
 		new_field, condition = self.field.process_field(field)
@@ -116,6 +195,10 @@ class Window:
 
 		return condition
 
+	"""
+	update_cells method
+	Step by step updates the cells and redraws them
+	"""
 	def update_cells(self, field):
 		for i in range(len(field)):
 			for j in range(len(field[0])):
@@ -124,9 +207,3 @@ class Window:
 					self.canvas.itemconfig(self.cells[index], fill='gray')
 				else:
 					self.canvas.itemconfig(self.cells[index], fill='white')
-
-def main():
-	w = Window()
-
-if __name__ == '__main__':
-	main()
