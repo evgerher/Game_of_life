@@ -1,8 +1,13 @@
 #/usr/bin/python3
 
 class Field:
-	def __init__(self):
-		self.fields = [[[True] * 10] * 10, [[True] * 10] * 10]
+	def __init__(self, width, height):
+		self.fields = [[[False] * width] * height] * 3
+		# dick below
+		# self.fields = [[[True] * 10] * 10, [[True] * 10] * 10]
+
+	def set_cell(self, x, y):
+		self.fields[0][y][x] = True
 
 	def process_field(self):
 		new_field = self.fields[0][:]
@@ -11,6 +16,11 @@ class Field:
 				new_field[y][x] = process_cell(x, y)
 
 		self.fields = new_field + self:fields[1:]
+
+	def clean(self):
+		for i in self.fields[0]:
+			for j in self.fields[0][i]:
+				self.fields[0][i][j] = False
 
 	def process_cell(x, y):
 		neighbours = count_neighbours(x, y)

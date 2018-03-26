@@ -1,51 +1,68 @@
+#/usr/bin/python3
+
 import tkinter as tk
 
-cells = []
-width = 800
-height = 600
-cell_size = 20
+class Window:
+	def __init__(self, width=800, height=600):
+		self.field = None
+		self.root = tk.Tk()
+		self.width = width
+		self.height = height
+		self.cell_size = 20
+		self.canvas, self.cells = self.configure_window()
+		self.cells = (self.width // self.cell_size, self.height // self.cell_size) 
 
-def change_cell_state(event):
-	x, y = event.x, event.y
-	global cells, width
-	id_x = x // cell_size
-	id_y = y // cell_size
-	ratio = width // cell_size
-	cell = cells[id_x + ratio * id_y]
-	event.widget.itemconfig(cell, fill='gray')
+	def configure_window(self):
+		geometry = '{}x{}'.format(self.width, self.height+100)
+		self.root.geometry(geometry)
 
-def start_game(event):
-	pass
+		cells = []
+		canvas = tk.Canvas(self.root, width=self.width, height=self.height)
+		for i in range(self.height // self.cell_size):
+			for j in range(self.width // self.cell_size):
+				cells.append(canvas.create_rectangle(j * self.cell_size, i * self.cell_size, (j+1) * self.cell_size, (i+1) * self.cell_size, fill='white'))
 
-def clear_field(event):
-	global cells, canvas, field
-	for cell in cells:
-		canvas.itemconfig(cell, fill='white')
-		# TODO: change field also
+		canvas.pack(fill=tk.BOTH)
 
-root = tk.Tk()
+		canvas.bind('<Button 1>', self.change_cell_state)
+		canvas.bind('<B1-Motion>', self.change_cell_state)
 
-geometry = '{}x{}'.format(width, height+100)
-root.geometry(geometry)
+		frame = tk.Frame(self.root)
 
-canvas = tk.Canvas(root, width=width, height=height)
-for i in range(height // cell_size):
-	for j in range(width // cell_size):
-		cells.append(canvas.create_rectangle(j * cell_size, i * cell_size, (j+1) * cell_size, (i+1) * cell_size, fill='white'))
+		btn_start = tk.Button(frame, text='Start', command=self.start_game)
+		btn_clear = tk.Button(frame, text='Clear', command=self.clear_field)
 
-canvas.pack(fill=tk.BOTH)
+		frame.pack(side='bottom')
+		btn_start.pack(side='left')
+		btn_clear.pack(side='right')
 
-canvas.bind('<Button 1>', change_cell_state)
-canvas.bind('<B1-Motion>', change_cell_state)
+		return canvas, cells
 
-frame = tk.Frame(root)
+	def change_cell_state(self, event):
+		x, y = event.x, event.y
+		id_x = x // self.cell_size
+		id_y = y // self.cell_size
+		ratio = self.width // self.cell_size
+		cell = self.cells[id_x + ratio * id_y]
 
-btn_start = tk.Button(frame, text='Start', command=start_game)
-btn_clear = tk.Button(frame, text='Clear', command=clear_field)
+		self.field.set_cell(id_x, id_y)
+		event.widget.itemconfig(cell, fill='gray')
 
-frame.pack(side='bottom')
-btn_start.pack(side='left')
-btn_clear.pack(side='right')
+	def start_game(self):
+		pass
 
+	def clear_field(self):
+		for cell in self.cells:
+			self.canvas.itemconfig(cell, fill='white')
+			# TODO: change field also
+		self.field.clean()
 
-root.mainloop()
+	def start(self, f):
+		self.field = f
+		self.root.mainloop()
+
+def main():
+	w = Window()
+
+if __name__ == '__main__':
+	main()
