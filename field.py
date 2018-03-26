@@ -23,9 +23,14 @@ class Field:
 				new_field[y][x] = self.process_cell(x, y)
 
 		self.fields = [new_field] + self.fields[1:]
+
+		condition = self.check_condition()
 		
 		# print ('Result field after processing...\n{}'.format(self.fields[0]))
-		return self.fields[0]
+		return self.fields[0], condition
+
+	def check_condition(self):
+		return not self.field_similarity()
 
 	def clean(self):
 		for i in range(len(self.fields[0])):
@@ -77,6 +82,7 @@ class Field:
 		if self.fields[0] == self.fields[2]:
 			return True
 		#TODO: Make it better
+		return False
 
 def main():
 	print ("hell")

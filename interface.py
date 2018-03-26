@@ -1,6 +1,21 @@
 #/usr/bin/python3
 
 import tkinter as tk
+import threading as th
+from time import sleep
+
+class Drawer(th.Thread):
+	def __init__(self, window):
+		th.Thread.__init__(self)
+		self.condition = True
+		self.window = window
+
+	def run(self):
+		print("Thread started")
+		while self.condition:
+			self.condition = self.window.update_canvas()
+			sleep(0.2)
+		print("Thread exited")
 
 class Window:
 	# set 800x600 for 40x30 rectangles
@@ -12,7 +27,7 @@ class Window:
 		self.cell_size = 20
 		self.canvas, self.cells = self.configure_window()
 		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size)
-		self.th = None
+		self.thread = None
 
 	def configure_window(self):
 		geometry = '{}x{}'.format(self.width, self.height+100)
@@ -33,10 +48,12 @@ class Window:
 
 		btn_start = tk.Button(frame, text='Start', command=self.start_game)
 		btn_clear = tk.Button(frame, text='Clear', command=self.clear_field)
+		btn_stop = tk.Button(frame, text='Stop', command=self.stop)
 
 		frame.pack(side='bottom')
 		btn_start.pack(side='left')
 		btn_clear.pack(side='right')
+		btn_stop.pack(side='right')
 
 		return canvas, cells
 
@@ -59,10 +76,18 @@ class Window:
 
 	def start(self, f):
 		self.field = f
+		self.thread = Drawer(self)
 		self.root.mainloop()
 
+	def stop(self):
+		if self.thread:
+			self.thread.condition = False
+
 	def start_game(self):
-		self.update_canvas()	
+		self.update_canvas()
+		sleep(0.1)
+		self.thread.setDaemon(True)
+		self.thread.start()
 
 	def canvas_to_field(self):
 		# mistake
@@ -75,8 +100,10 @@ class Window:
 
 	def update_canvas(self):
 		field = self.canvas_to_field()
-		new_field = self.field.process_field(field)
+		new_field, condition = self.field.process_field(field)
 		self.update_cells(new_field)
+
+		return condition
 
 	def update_cells(self, field):
 		for i in range(len(field)):
@@ -86,8 +113,6 @@ class Window:
 					self.canvas.itemconfig(self.cells[index], fill='gray')
 				else:
 					self.canvas.itemconfig(self.cells[index], fill='white')
-
-
 
 def main():
 	w = Window()
