@@ -3,14 +3,15 @@
 import tkinter as tk
 
 class Window:
-	def __init__(self, width=800, height=600):
+	def __init__(self, width=60, height=60):
 		self.field = None
 		self.root = tk.Tk()
 		self.width = width
 		self.height = height
 		self.cell_size = 20
 		self.canvas, self.cells = self.configure_window()
-		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size) 
+		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size)
+		self.th = None
 
 	def configure_window(self):
 		geometry = '{}x{}'.format(self.width, self.height+100)
@@ -50,18 +51,38 @@ class Window:
 		self.field.set_cell(id_x, id_y)
 		event.widget.itemconfig(cell, fill='gray')
 
-	def start_game(self):
-		pass
-
 	def clear_field(self):
 		for cell in self.cells:
 			self.canvas.itemconfig(cell, fill='white')
-			# TODO: change field also
 		self.field.clean()
 
 	def start(self, f):
 		self.field = f
 		self.root.mainloop()
+
+	def start_game(self):
+		self.update_canvas()	
+
+	def canvas_to_field(self):
+		field = [[False] * self.cells_params[0]] * self.cells_params[1]
+		for i in range(len(self.cells)):
+			if self.canvas.itemcget(self.cells[i], 'fill') == 'gray':
+				field[i // self.cells_params[0]][i % self.cells_params[0]] = True
+
+		return field
+
+	def update_canvas(self):
+		field = self.canvas_to_field()
+		new_field = self.field.process_field(field)
+		self.update_cells(new_field)
+
+	def update_cells(self, field):
+		for i in range(len(field)):
+			for j in range(len(field[0])):
+				if field[i][j]:
+					index = i * self.cells_params[0] + j
+					self.canvas.itemconfig(self.cells[index], fill='gray')
+
 
 def main():
 	w = Window()
