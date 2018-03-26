@@ -37,12 +37,13 @@ Stores GUI processing units and receives updates from Field object
 class Window:
 	# set 800x600 for 40x30 rectangles
 	# set 60x60 for 3x3 rectangles
-	def __init__(self, width=800, height=600, cell_size=20, thread_active=False):
+	def __init__(self, width=800, height=600, cell_size=20, thread_active=False, patterns=None):
 		self.field = None # Field object, stores logic and constructs new iteration of the map
 		self.root = tk.Tk() # GUI root object
 		self.width = width # Width of the screen
 		self.height = height # Height of the screen
-		self.cell_size = size # size AxA pixels of the rectangles in the canvas
+		self.cell_size = cell_size # size AxA pixels of the rectangles in the canvas
+		self.patterns = patterns
 		self.canvas, self.cells = self.configure_window() # Init method for GUI
 		self.cells_params = (self.width // self.cell_size, self.height // self.cell_size) # Store amount of cells in width and height for later needs
 		self.thread = None # Thread for parallel update
@@ -79,6 +80,11 @@ class Window:
 		btn_start = tk.Button(frame, text='Start', command=self.start_game)
 		btn_clear = tk.Button(frame, text='Clear', command=self.clear_field)
 		btn_stop = tk.Button(frame, text='Stop', command=self.stop)
+		if self.patterns:
+			for name in self.patterns.keys():
+				btn = tk.Button(frame, text=name, command=self.draw_figure)
+				btn.bind('<Button-1>', self.draw_figure)
+				btn.pack(side='right')
 
 		# Items packing
 		canvas.pack(fill=tk.BOTH)
@@ -88,6 +94,33 @@ class Window:
 		btn_stop.pack(side='right')
 
 		return canvas, cells
+
+	""" 
+	Method draw_figure
+	Supports patterns feature
+	Draws a pattern in coordinates provided by pattern dictionary
+	"""
+	def draw_figure(self, event=None):
+		if event:
+			name = event.widget.cget('text')
+			for (x, y) in self.patterns[name]:
+				self.set_pattern_cell(x, y)
+
+	""" 
+	Method set_pattern_cell
+	Similar to change_cell_state, but with reduced functionality
+	changes the state of a cell
+	"""
+	def set_pattern_cell(self, x, y):
+		try:
+			ratio = self.width // self.cell_size
+			cell = self.cells[x + ratio * y]
+			# Update Field cell
+			self.field.set_cell(x, y)
+			# Update local cell
+			self.canvas.itemconfig(cell, fill='gray')
+		except IndexError as e:
+			pass
 
 	""" 
 	Method change_cell_state
