@@ -7,7 +7,7 @@ class Field:
 		self.y_border = height
 
 	def set_cell(self, x, y):
-		self.fields[0][y][x] = True
+		self.fields[0][y][x] = not self.fields[0][y][x]
 		# print('After updated field:\n{}'.format(self.fields[0]))
 
 	def process_field(self, field=None):
@@ -72,7 +72,7 @@ class Field:
 		if self.fields[0][right_y][left_x]:
 			count += 1
 
-		# print('Cell [{}:{}] has {} neighbours...'.format(x, y, count))
+		print('Cell [{}:{}] has {} neighbours...'.format(x, y, count))
 
 		return count
 

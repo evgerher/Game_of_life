@@ -19,7 +19,8 @@ class Drawer(th.Thread):
 
 class Window:
 	# set 800x600 for 40x30 rectangles
-	def __init__(self, width=800, height=600):
+	# set 60x60 for 3x3 rectangles
+	def __init__(self, width=100, height=100):
 		self.field = None
 		self.root = tk.Tk()
 		self.width = width
@@ -67,16 +68,19 @@ class Window:
 		cell = self.cells[id_x + ratio * id_y]
 
 		self.field.set_cell(id_x, id_y)
-		event.widget.itemconfig(cell, fill='gray')
+		if event.widget.itemcget(cell, 'fill') == 'gray':
+			event.widget.itemconfig(cell, fill='white')
+		else:
+			event.widget.itemconfig(cell, fill='gray')
 
 	def clear_field(self):
+		self.thread.condition = False
 		for cell in self.cells:
 			self.canvas.itemconfig(cell, fill='white')
 		self.field.clean()
 
 	def start(self, f):
 		self.field = f
-		self.thread = Drawer(self)
 		self.root.mainloop()
 
 	def stop(self):
@@ -86,6 +90,7 @@ class Window:
 	def start_game(self):
 		self.update_canvas()
 		sleep(0.1)
+		self.thread = Drawer(self)
 		self.thread.setDaemon(True)
 		self.thread.start()
 
