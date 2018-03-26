@@ -2,15 +2,17 @@
 
 class Field:
 	def __init__(self, width, height):
-		self.fields = [[[False] * width] * height] * 3
+		self.fields = [[[False for x in range(width)] for y in range(height)] for z in range(3)]
 		self.x_border = width
 		self.y_border = height
 
 	def set_cell(self, x, y):
 		self.fields[0][y][x] = True
+		# print('After updated field:\n{}'.format(self.fields[0]))
 
 	def process_field(self, field=None):
 		if field:
+			# print ('Field came from app :\n {}'.format(field))
 			for i in range(len(field)):
 				for j in range(len(field[i])):
 					self.fields[0][i][j] = field[i][j]
@@ -22,7 +24,7 @@ class Field:
 
 		self.fields = [new_field] + self.fields[1:]
 		
-		print (self.fields[0])
+		# print ('Result field after processing...\n{}'.format(self.fields[0]))
 		return self.fields[0]
 
 	def clean(self):
@@ -45,6 +47,8 @@ class Field:
 		left_x = (x - 1) if (x - 1) > 0 else self.x_border - 1
 		left_y = (y - 1) if (y - 1) > 0 else self.y_border - 1
 
+		# print('On count : {}'.format(self.fields[0]))
+
 		count = 0
 		if self.fields[0][y][right_x]:
 			count += 1
@@ -62,6 +66,8 @@ class Field:
 			count += 1
 		if self.fields[0][right_y][left_x]:
 			count += 1
+
+		# print('Cell [{}:{}] has {} neighbours...'.format(x, y, count))
 
 		return count
 

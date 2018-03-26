@@ -3,7 +3,8 @@
 import tkinter as tk
 
 class Window:
-	def __init__(self, width=60, height=60):
+	# set 800x600 for 40x30 rectangles
+	def __init__(self, width=800, height=600):
 		self.field = None
 		self.root = tk.Tk()
 		self.width = width
@@ -41,11 +42,11 @@ class Window:
 
 	def change_cell_state(self, event):
 		x, y = event.x, event.y
-		print("{}:{} - coords".format(x, y))
+		# print("{}:{} - coords".format(x, y))
 		id_x = x // self.cell_size
 		id_y = y // self.cell_size
 		ratio = self.width // self.cell_size
-		print("{}:{} - indexes".format(id_x, id_y))
+		# print("{}:{} - indexes".format(id_x, id_y))
 		cell = self.cells[id_x + ratio * id_y]
 
 		self.field.set_cell(id_x, id_y)
@@ -64,7 +65,8 @@ class Window:
 		self.update_canvas()	
 
 	def canvas_to_field(self):
-		field = [[False] * self.cells_params[0]] * self.cells_params[1]
+		# mistake
+		field = [[False for x in range(self.cells_params[0])] for y in range(self.cells_params[1])]
 		for i in range(len(self.cells)):
 			if self.canvas.itemcget(self.cells[i], 'fill') == 'gray':
 				field[i // self.cells_params[0]][i % self.cells_params[0]] = True
@@ -79,9 +81,12 @@ class Window:
 	def update_cells(self, field):
 		for i in range(len(field)):
 			for j in range(len(field[0])):
-				if field[i][j]:
-					index = i * self.cells_params[0] + j
+				index = i * self.cells_params[0] + j
+				if field[i][j]:	
 					self.canvas.itemconfig(self.cells[index], fill='gray')
+				else:
+					self.canvas.itemconfig(self.cells[index], fill='white')
+
 
 
 def main():
