@@ -2,12 +2,12 @@ import tkinter as tk
 
 cells = []
 width = 800
-height = 400
+height = 600
 cell_size = 20
 
 def change_cell_state(event):
 	x, y = event.x, event.y
-	global cells
+	global cells, width
 	id_x = x // cell_size
 	id_y = y // cell_size
 	ratio = width // cell_size
@@ -18,11 +18,14 @@ def start_game(event):
 	pass
 
 def clear_field(event):
-	pass
+	global cells, canvas, field
+	for cell in cells:
+		canvas.itemconfig(cell, fill='white')
+		# TODO: change field also
 
 root = tk.Tk()
 
-geometry = '{}x{}'.format(width, height)
+geometry = '{}x{}'.format(width, height+100)
 root.geometry(geometry)
 
 canvas = tk.Canvas(root, width=width, height=height)
