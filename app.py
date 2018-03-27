@@ -24,7 +24,7 @@ def main():
 		height = config['height']
 		size = config['size'] # 10
 		# Tkinter GUI
-		window = interface.Window(width=width, height=height, cell_size=size, thread_active=True, patterns=patterns)
+		window = interface.Window(width=width, height=height, cell_size=size, thread_active=False, patterns=patterns)
 		# Field class for logic
 		f = field.Field(*window.cells_params)
 		# Run the main loop
