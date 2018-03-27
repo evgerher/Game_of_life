@@ -37,7 +37,7 @@ Stores GUI processing units and receives updates from Field object
 class Window:
 	# set 800x600 for 40x30 rectangles
 	# set 60x60 for 3x3 rectangles
-	def __init__(self, width=800, height=600, cell_size=20, thread_active=False, patterns=None):
+	def __init__(self, width=800, height=600, cell_size=20, thread_active=True, patterns=None):
 		self.field = None # Field object, stores logic and constructs new iteration of the map
 		self.root = tk.Tk() # GUI root object
 		self.width = width # Width of the screen
@@ -78,6 +78,7 @@ class Window:
 
 		# Button inialization
 		btn_start = tk.Button(frame, text='Start', command=self.start_game)
+		btn_step = tk.Button(frame, text='Step', command=self.update_canvas)
 		btn_clear = tk.Button(frame, text='Clear', command=self.clear_field)
 		btn_stop = tk.Button(frame, text='Stop', command=self.stop)
 		if self.patterns:
@@ -90,8 +91,9 @@ class Window:
 		canvas.pack(fill=tk.BOTH)
 		frame.pack(side='bottom')
 		btn_start.pack(side='left')
-		btn_clear.pack(side='right')
-		btn_stop.pack(side='right')
+		btn_step.pack(side='left')
+		btn_stop.pack(side='left')
+		btn_clear.pack(side='left')
 
 		return canvas, cells
 
